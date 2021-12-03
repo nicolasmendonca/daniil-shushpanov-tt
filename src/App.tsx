@@ -1,26 +1,20 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import "./styles.css";
+import { useQuery } from "./useQuery";
+import fetchTodos, { ITodo } from "./fetchTodos";
 
-function App() {
+export default function App() {
+  const {  data } = useQuery("asadass", fetchTodos);
+  //   // TODO
+  // const useQuery: UseQuery<ITodo> = ("TODO") => {
+  //   return {
+
+  //   }
+  // }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Test Task</h1>
+      {console.log(data)}
     </div>
   );
 }
-
-export default App;
