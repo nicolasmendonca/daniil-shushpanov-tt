@@ -21,6 +21,7 @@ const fetchTodos = async (): Promise<ITodo[]> => {
   }
   return verifiedResponse;
 
+  // Example
   // return fetch("https://jsonplaceholder.typicode.com/todos").then((response) =>
   //   response.json()
   // );
