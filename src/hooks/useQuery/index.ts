@@ -20,29 +20,47 @@
  * mutate(todos => [...todos, newTodo], false)
  */
 
-import { useEffect, useCallback, useState } from "react";
-import { ITodo } from "./fetchTodos";
+import { useEffect, useCallback, useState, useMemo } from "react";
+import { UseQueryCache } from "../../services/cache/useQueryCache";
+
+// declare global {
+//   interface Window {
+//     userQueryCache<T>(): UseQueryCache<T>;
+//   }
+// }
 
 type Callback<T> = (newData: T | null) => T | null;
 type Mutate<T> = (callback: Callback<T>, revalidate: boolean) => void;
 interface UseQueryReturn<T> {
   data: T | null;
-  error: any;
+  error: string;
   mutate: Mutate<T>;
 }
 
-type UseQuery<T = any> = (
+// Example of type
+// type UseQuery<T = any> = (
+//   cacheKey: string,
+//   fetcher: () => Promise<T>
+// ) => UseQueryReturn<T>;
+
+// type CacheType = Record<string, ITodo[]>;
+
+// TODO
+export function useQuery<T>(
   cacheKey: string,
   fetcher: () => Promise<T>
-) => UseQueryReturn<T>;
-
-type CacheType = Record<string, ITodo[]>;
-
-const CACHE: CacheType = {};
-// TODO
-export const useQuery: UseQuery = (cacheKey, fetcher) => {
-  const [dataQuery, setDataQuery] = useState<any>([]);
+): UseQueryReturn<T> {
+  const [dataQuery, setDataQuery] = useState<T | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const CACHE = useMemo(() => {
+    return new UseQueryCache<T>();
+  }, []);
+
+  // if (window.userQueryCache === undefined) {
+  //   // I know that is not an optimal solution, However it's wokring. Better solution would be write a cache Id(object of caches for each hook) and delete when the hook is unmounted
+  // }
+
   const fetchData = useCallback(async () => {
     try {
       const response = await fetcher();
@@ -50,20 +68,26 @@ export const useQuery: UseQuery = (cacheKey, fetcher) => {
     } catch (error) {
       if (error instanceof Error) {
         setErrorMessage(error.message);
+      } else if (typeof error === "string") {
+        setErrorMessage(error);
       } else {
         setErrorMessage("unhandled error in fetch todos");
       }
     }
   }, [fetcher]);
   useEffect(() => {
-    if (CACHE[cacheKey] !== undefined) {
-      setDataQuery(CACHE[cacheKey]);
+    if (CACHE.getFromCache(cacheKey) !== null) {
+      setDataQuery(CACHE.getFromCache(cacheKey));
     } else {
       fetchData();
     }
-  }, [fetchData, cacheKey]);
-  const mutate: Mutate<any> = (calback, revalidate) => {
+  }, [fetchData, cacheKey, CACHE]);
+  const mutate: Mutate<T> = (calback, revalidate) => {
     setDataQuery(calback);
+    if (revalidate) {
+      console.log("revalidating");
+      fetchData();
+    }
   };
 
   return {
@@ -71,4 +95,4 @@ export const useQuery: UseQuery = (cacheKey, fetcher) => {
     data: dataQuery,
     mutate,
   };
-};
+}

@@ -1,6 +1,6 @@
-import { ITodo } from "./fetchTodos";
+import { ITodo } from "../../../interfaces/todo.interface";
 
-export const verifyResponse = (data: unknown): ITodo[] | false => {
+export const verifyFetchResponse = (data: unknown): ITodo[] | false => {
   const verifiedData: ITodo[] = data as ITodo[];
   if (!Array.isArray(data)) return false;
   data.forEach((item) => {
